@@ -16,7 +16,11 @@ class Request(BaseModel):
 def check(req: Request):
 
     if req.tool == "read_file":
-
+        
+        print("=" * 50)
+        print("READ_FILE REQUEST")
+        print("Raw path:", req.arguments.get("path"))
+        print("=" * 50)
         ok, value = validate_file(req.arguments["path"])
 
         if not ok:
