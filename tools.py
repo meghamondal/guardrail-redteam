@@ -10,7 +10,7 @@ def read_file(path: Path):
 def fetch_url(url):
     r = requests.get(
         url,
-        timeout=10,
+        timeout=3,
         allow_redirects=False,
     )
     return r.text
