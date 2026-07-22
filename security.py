@@ -3,17 +3,33 @@ from urllib.parse import urlparse
 import socket
 import ipaddress
 
-SANDBOX = Path("/srv/agent-redteam/sandbox-17f480feff").resolve()
+BASE_DIR = Path(__file__).parent
+
+DATA_DIR = BASE_DIR / "data"
+
+SANDBOX = (DATA_DIR / "sandbox-17f480feff").resolve()
+
+OUTSIDE = (DATA_DIR / "outside-0ace107c").resolve()
 
 ALLOWED_HOSTS = {
     "example.com",
-    "www.iana.org"
+    "www.iana.org",
 }
+
+
+def map_path(path: str):
+
+    prefix = "/srv/agent-redteam/"
+
+    if path.startswith(prefix):
+        path = path.replace(prefix, str(DATA_DIR) + "/", 1)
+
+    return Path(path)
 
 
 def validate_file(path):
 
-    p = Path(path)
+    p = map_path(path)
 
     resolved = p.resolve()
 
