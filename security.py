@@ -52,6 +52,18 @@ def validate_url(url):
 
     try:
         parsed = urlparse(url)
+
+        print("=" * 60)
+        print("VALIDATE_URL")
+        print("RAW URL :", url)
+        print("SCHEME  :", parsed.scheme)
+        print("NETLOC  :", parsed.netloc)
+        print("HOST    :", parsed.hostname)
+        print("USER    :", parsed.username)
+        print("PORT    :", parsed.port if parsed.hostname else None)
+        print("PATH    :", parsed.path)
+        print("QUERY   :", parsed.query)
+        print("=" * 60)
     except Exception:
         return False, "invalid url"
 
@@ -62,6 +74,19 @@ def validate_url(url):
         return False, "userinfo not allowed"
 
     host = parsed.hostname
+
+    if host is None:
+        return False, "invalid host"
+
+    # Reject malformed netlocs that include backslashes
+    if "\\" in parsed.netloc:
+        return False, "invalid authority"
+
+    # Reject ports outside the valid range
+    try:
+        _ = parsed.port
+    except ValueError:
+        return False, "invalid port"
 
     if host not in ALLOWED_HOSTS:
         return False, "host not allowed"
