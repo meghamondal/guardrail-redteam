@@ -18,13 +18,20 @@ ALLOWED_HOSTS = {
 
 
 def map_path(path: str):
-
     prefix = "/srv/agent-redteam/"
 
+    # Absolute grader path
     if path.startswith(prefix):
         path = path.replace(prefix, str(DATA_DIR) + "/", 1)
+        return Path(path)
 
-    return Path(path)
+    # Absolute path (not under /srv)
+    p = Path(path)
+    if p.is_absolute():
+        return p
+
+    # Relative path -> inside sandbox
+    return SANDBOX / p
 
 
 def validate_file(path):
