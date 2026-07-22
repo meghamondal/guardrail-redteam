@@ -16,49 +16,95 @@ class Request(BaseModel):
 def check(req: Request):
 
     if req.tool == "read_file":
-        
-        print("=" * 50)
-        print("READ_FILE REQUEST")
-        print("Raw path:", req.arguments.get("path"))
-        print("=" * 50)
-        ok, value = validate_file(req.arguments["path"])
+        raw_path = req.arguments["path"]
+
+        print("=" * 60)
+        print("READ_FILE")
+        print("RAW PATH :", raw_path)
+
+        ok, value = validate_file(raw_path)
+
+        print("VALID    :", ok)
+        print("VALUE    :", value)
 
         if not ok:
+
+            print("ACTION   : BLOCK")
+            print("=" * 60)
+
             return {
                 "action": "block",
                 "reason": value,
                 "result": None,
             }
 
-        text = read_file(value)
+        try:
 
-        return {
-            "action": "allow",
-            "reason": "inside sandbox",
-            "result": text,
-        }
+            text = read_file(value)
+
+            print("ACTION   : ALLOW")
+            print("=" * 60)
+
+            return {
+                "action": "allow",
+                "reason": "inside sandbox",
+                "result": text,
+            }
+
+        except Exception as e:
+
+            print("READ ERROR:", e)
+            print("=" * 60)
+
+            return {
+                "action": "block",
+                "reason": str(e),
+                "result": None,
+            }
 
     elif req.tool == "fetch_url":
+        raw_url = req.arguments["url"]
 
-        ok, value = validate_url(req.arguments["url"])
+        print("=" * 60)
+        print("FETCH_URL")
+        print("RAW URL :", raw_url)
+
+        ok, value = validate_url(raw_url)
+
+        print("VALID   :", ok)
+        print("VALUE   :", value)
 
         if not ok:
+
+            print("ACTION  : BLOCK")
+            print("=" * 60)
+
             return {
                 "action": "block",
                 "reason": value,
                 "result": None,
             }
 
-        body = fetch_url(value)
+        try:
 
-        return {
-            "action": "allow",
-            "reason": "allowed host",
-            "result": body,
-        }
+            body = fetch_url(value)
 
-    return {
-        "action": "block",
-        "reason": "unknown tool",
-        "result": None,
-    }
+            print("ACTION  : ALLOW")
+            print("=" * 60)
+
+            return {
+                "action": "allow",
+                "reason": "allowed host",
+                "result": body,
+            }
+
+        except Exception as e:
+
+            print("FETCH ERROR:", e)
+            print("=" * 60)
+
+            return {
+                "action": "block",
+                "reason": str(e),
+                "result": None,
+            }
