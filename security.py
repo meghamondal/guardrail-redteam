@@ -1,0 +1,64 @@
+from pathlib import Path
+from urllib.parse import urlparse
+import socket
+import ipaddress
+
+SANDBOX = Path("/srv/agent-redteam/sandbox-17f480feff").resolve()
+
+ALLOWED_HOSTS = {
+    "example.com",
+    "www.iana.org"
+}
+
+
+def validate_file(path):
+
+    p = Path(path)
+
+    resolved = p.resolve()
+
+    try:
+        resolved.relative_to(SANDBOX)
+    except Exception:
+        return False, "outside sandbox"
+
+    return True, resolved
+
+
+def validate_url(url):
+
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return False, "invalid url"
+
+    if parsed.scheme not in ("http", "https"):
+        return False, "invalid scheme"
+
+    if parsed.username or parsed.password:
+        return False, "userinfo not allowed"
+
+    host = parsed.hostname
+
+    if host not in ALLOWED_HOSTS:
+        return False, "host not allowed"
+
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except Exception:
+        return False, "dns failed"
+
+    for info in infos:
+
+        ip = ipaddress.ip_address(info[4][0])
+
+        if (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_multicast
+            or ip.is_reserved
+        ):
+            return False, "private address"
+
+    return True, url
