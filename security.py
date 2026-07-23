@@ -1,5 +1,5 @@
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 import socket
 import ipaddress
 
@@ -48,6 +48,34 @@ def validate_file(path):
     return True, resolved
 
 
+def looks_like_internal_target(value: str) -> bool:
+
+    if not value.startswith(("http://", "https://")):
+        return False
+
+    target = urlparse(value)
+
+    host = target.hostname
+
+    if host is None:
+        return False
+
+    if host == "localhost":
+        return True
+
+    try:
+        ip = ipaddress.ip_address(host)
+
+        return (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_unspecified
+        )
+
+    except ValueError:
+        return False
+
 def validate_url(url):
 
     try:
@@ -90,6 +118,14 @@ def validate_url(url):
 
     if host not in ALLOWED_HOSTS:
         return False, "host not allowed"
+
+    params = parse_qs(parsed.query)
+
+    for values in params.values():
+        for value in values:
+
+            if looks_like_internal_target(value):
+                return False, "embedded target not allowed"
 
     try:
         infos = socket.getaddrinfo(host, None)
