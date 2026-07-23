@@ -132,13 +132,28 @@ def validate_url(url):
         return False, "host not allowed"
 
     params = parse_qs(parsed.query)
+    REDIRECT_KEYS = {
+    "next",
+    "redirect",
+    "redirect_uri",
+    "redirect_url",
+    "url",
+    "target",
+    "dest",
+    "destination",
+    "continue",
+    "return",
+    "return_to",
+}
 
-    for values in params.values():
+    for key, values in params.items():
+
+        if key.lower() not in REDIRECT_KEYS:
+            continue
+
         for value in values:
 
             if looks_like_internal_target(value):
-                print("BLOCKED : embedded target not allowed")
-                print("=" * 60)
                 return False, "embedded target not allowed"
 
     try:
