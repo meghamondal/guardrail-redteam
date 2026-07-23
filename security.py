@@ -82,6 +82,10 @@ def validate_url(url):
         parsed = urlparse(url)
 
         print("=" * 60)
+        print("CHECKING URL")
+        print("RAW URL :", url)
+
+        print("=" * 60)
         print("VALIDATE_URL")
         print("RAW URL :", url)
         print("SCHEME  :", parsed.scheme)
@@ -93,12 +97,18 @@ def validate_url(url):
         print("QUERY   :", parsed.query)
         print("=" * 60)
     except Exception:
-        return False, "invalid url"
+        print("BLOCKED : invalid scheme")
+        print("=" * 60)
+        return False, "invalid scheme"
 
     if parsed.scheme not in ("http", "https"):
+        print("BLOCKED : invalid scheme")
+        print("=" * 60)
         return False, "invalid scheme"
 
     if parsed.username or parsed.password:
+        print("BLOCKED : userinfo not allowed")
+        print("=" * 60)
         return False, "userinfo not allowed"
 
     host = parsed.hostname
@@ -117,6 +127,8 @@ def validate_url(url):
         return False, "invalid port"
 
     if host not in ALLOWED_HOSTS:
+        print("BLOCKED : host not allowed")
+        print("=" * 60)
         return False, "host not allowed"
 
     params = parse_qs(parsed.query)
@@ -125,11 +137,15 @@ def validate_url(url):
         for value in values:
 
             if looks_like_internal_target(value):
+                print("BLOCKED : embedded target not allowed")
+                print("=" * 60)
                 return False, "embedded target not allowed"
 
     try:
         infos = socket.getaddrinfo(host, None)
     except Exception:
+        print("BLOCKED : dns failed")
+        print("=" * 60)
         return False, "dns failed"
 
     for info in infos:
@@ -142,6 +158,10 @@ def validate_url(url):
             or ip.is_link_local
             or ip.is_unspecified
         ):
+            print("BLOCKED : private address")
+            print("=" * 60)
             return False, "private address"
 
+    print("ALLOWED")
+    print("=" * 60)
     return True, url
